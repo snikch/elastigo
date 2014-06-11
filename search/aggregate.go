@@ -306,16 +306,16 @@ func (d *AggregateDsl) ExtendedBounds(min, max interface{}) *AggregateDsl {
 	return d
 }
 func (d *AggregateDsl) MarshalJSON() ([]byte, error) {
-	return json.Marshal(d.toMap())
+	return json.Marshal(d.ToMap())
 }
 
-func (d *AggregateDsl) toMap() map[string]interface{} {
+func (d *AggregateDsl) ToMap() map[string]interface{} {
 	root := map[string]interface{}{}
 
 	if d.Type != nil {
 		root[d.TypeName] = d.Type
 	}
-	aggregates := d.aggregatesMap()
+	aggregates := d.AggregatesMap()
 
 	if d.Filters != nil {
 		root["filter"] = d.Filters
@@ -327,12 +327,12 @@ func (d *AggregateDsl) toMap() map[string]interface{} {
 	return root
 
 }
-func (d *AggregateDsl) aggregatesMap() map[string]interface{} {
+func (d *AggregateDsl) AggregatesMap() map[string]interface{} {
 	root := map[string]interface{}{}
 
 	if len(d.AggregatesVal) > 0 {
 		for _, agg := range d.AggregatesVal {
-			root[agg.Name] = agg.toMap()
+			root[agg.Name] = agg.ToMap()
 		}
 	}
 	return root
