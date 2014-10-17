@@ -160,6 +160,16 @@ func (d *AggregateDsl) SignificantTerms(field string) *AggregateDsl {
 	return d
 }
 
+type Children struct {
+	Type string `json:"type"`
+}
+
+func (d *AggregateDsl) Children(typ string) *AggregateDsl {
+	d.Type = Children{Type: typ}
+	d.TypeName = "children"
+	return d
+}
+
 type Histogram struct {
 	Field          string      `json:"field"`
 	Interval       float64     `json:"interval"`
