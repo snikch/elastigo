@@ -18,8 +18,9 @@ type AggregateDsl struct {
 }
 
 type FieldAggregate struct {
-	Field   string `json:"field"`
-	SizeVal *int   `json:"size,omitempty"`
+	Field    string            `json:"field"`
+	SizeVal  *int              `json:"size,omitempty"`
+	OrderVal map[string]string `json:"order,omitempty"`
 }
 
 /**
@@ -201,6 +202,17 @@ func (d *AggregateDsl) DateHistogram(field, interval string) *AggregateDsl {
 		MinDocCount: 1,
 	}
 	d.TypeName = "date_histogram"
+	return d
+}
+
+func (d *AggregateDsl) Order(field, direction string) *AggregateDsl {
+	switch d.TypeName {
+	case "terms":
+		agg := d.Type.(FieldAggregate)
+		agg.OrderVal = map[string]string{}
+		agg.OrderVal[field] = direction
+		d.Type = agg
+	}
 	return d
 }
 
