@@ -13,12 +13,13 @@ package elastigo
 
 import (
 	"fmt"
-	hostpool "github.com/bitly/go-hostpool"
 	"net/http"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	hostpool "github.com/bitly/go-hostpool"
 )
 
 const (
@@ -39,6 +40,7 @@ type Conn struct {
 	Username       string
 	Password       string
 	Hosts          []string
+	Client         *http.Client
 	hp             hostpool.HostPool
 	once           sync.Once
 
@@ -57,6 +59,7 @@ func NewConn() *Conn {
 		ClusterDomains: []string{DefaultDomain},
 		Port:           DefaultPort,
 		DecayDuration:  time.Duration(DefaultDecayDuration * time.Second),
+		Client:         http.DefaultClient,
 	}
 }
 
@@ -126,6 +129,7 @@ func (c *Conn) NewRequest(method, path, query string) (*Request, error) {
 	newRequest := &Request{
 		Request:      req,
 		hostResponse: hr,
+		client:       c.Client,
 	}
 	return newRequest, nil
 }
