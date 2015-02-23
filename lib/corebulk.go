@@ -325,6 +325,15 @@ func (b *BulkIndexer) Update(index string, _type string, id, ttl string, date *t
 	return nil
 }
 
+func (b *BulkIndexer) RawCommand(action, data []byte) {
+	nl := []byte("\n")
+	action = append(action, nl...)
+	if len(data) > 0 {
+		data = append(data, nl...)
+	}
+	b.bulkChannel <- append(action, data...)
+}
+
 // This does the actual send of a buffer, which has already been formatted
 // into bytes of ES formatted bulk data
 func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
