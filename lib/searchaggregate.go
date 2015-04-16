@@ -155,6 +155,12 @@ func (d *AggregateDsl) Terms(field string) *AggregateDsl {
 	return d
 }
 
+func (d *AggregateDsl) TermsWithSize(field string, size int) *AggregateDsl {
+	d.Type = FieldAggregate{Field: field, SizeVal: &size}
+	d.TypeName = "terms"
+	return d
+}
+
 func (d *AggregateDsl) SignificantTerms(field string) *AggregateDsl {
 	d.Type = FieldAggregate{Field: field}
 	d.TypeName = "significant_terms"

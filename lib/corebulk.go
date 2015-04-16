@@ -202,6 +202,8 @@ func (b *BulkIndexer) startHttpSender() {
 				select {
 				case buf := <-b.sendBuf:
 					b.sendWg.Add(1)
+					// Copy for the potential re-send.
+					bufCopy := bytes.NewBuffer(buf.Bytes())
 					err := b.Sender(buf)
 
 					// Perhaps a b.FailureStrategy(err)  ??  with different types of strategies
@@ -211,7 +213,7 @@ func (b *BulkIndexer) startHttpSender() {
 					if err != nil {
 						if b.RetryForSeconds > 0 {
 							time.Sleep(time.Second * time.Duration(b.RetryForSeconds))
-							err = b.Sender(buf)
+							err = b.Sender(bufCopy)
 							if err == nil {
 								// Successfully re-sent with no error
 								b.sendWg.Done()
@@ -332,6 +334,23 @@ func (b *BulkIndexer) RawCommand(action, data []byte) {
 		data = append(data, nl...)
 	}
 	b.bulkChannel <- append(action, data...)
+}
+
+func (b *BulkIndexer) Delete(index, _type, id string, refresh bool) {
+	queryLine := fmt.Sprintf("{\"delete\":{\"_index\":%q,\"_type\":%q,\"_id\":%q,\"refresh\":%t}}\n", index, _type, id, refresh)
+	b.bulkChannel <- []byte(queryLine)
+	return
+}
+
+func (b *BulkIndexer) UpdateWithPartialDoc(index string, _type string, id, ttl string, date *time.Time, partialDoc interface{}, upsert bool, refresh bool) error {
+
+	var data map[string]interface{} = make(map[string]interface{})
+
+	data["doc"] = partialDoc
+	if upsert {
+		data["doc_as_upsert"] = true
+	}
+	return b.Update(index, _type, id, ttl, date, data, refresh)
 }
 
 // This does the actual send of a buffer, which has already been formatted

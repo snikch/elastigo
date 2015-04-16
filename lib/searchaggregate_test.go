@@ -22,6 +22,7 @@ func TestAggregateDsl(t *testing.T) {
 	global := Aggregate("global").Global()
 	missing := Aggregate("missing_price").Missing("price")
 	terms := Aggregate("terms_price").Terms("price")
+	termsSize := Aggregate("terms_price_size").TermsWithSize("price", 0)
 	significantTerms := Aggregate("significant_terms_price").SignificantTerms("price")
 	histogram := Aggregate("histogram_price").Histogram("price", 50).MinDocCount(float64(0)).ExtendedBounds(nil, float64(0))
 	histogramOther := Aggregate("histogram_other").Histogram("price", 50)
@@ -52,6 +53,7 @@ func TestAggregateDsl(t *testing.T) {
 		global,
 		missing,
 		terms,
+		termsSize,
 		significantTerms,
 		histogram,
 		histogramOther,
@@ -116,6 +118,9 @@ func TestAggregateDsl(t *testing.T) {
 						},
 						"terms_price":{
 							"terms": { "field": "price" }
+						},
+						"terms_price_size":{
+							"terms": { "field": "price", "size": 0 }
 						},
 						"significant_terms_price":{
 							"significant_terms": { "field": "price" }
