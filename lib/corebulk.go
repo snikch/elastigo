@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -47,7 +48,13 @@ type BulkResponseStruct struct {
 }
 
 func (err BulkIndexError) Error() string {
-	return fmt.Sprintf("Bulk Insertion Error. Failed item count [%d]: %s", len(err.Items), err.Items[0])
+	lines := []string{
+		fmt.Sprintf("Bulk Insertion Error. Failed item count [%d]", len(err.Items)),
+	}
+	for _, item := range err.Items {
+		lines = append(lines, fmt.Sprintf("%s", item))
+	}
+	return strings.Join(lines, "\n")
 }
 
 var (
