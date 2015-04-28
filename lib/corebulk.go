@@ -38,6 +38,22 @@ type ErrorBuffer struct {
 	Buf *bytes.Buffer
 }
 
+type BulkIndexError BulkResponseStruct
+
+type BulkResponseStruct struct {
+	Took   int64                    `json:"took"`
+	Errors bool                     `json:"errors"`
+	Items  []map[string]interface{} `json:"items"`
+}
+
+func (err BulkIndexError) Error() string {
+	return fmt.Sprintf("Bulk Insertion Error. Failed item count [%d]: %s", len(err.Items), err.Items[0])
+}
+
+var (
+	ErrBulkShutdownTimeout = fmt.Errorf("Shutdown timed out after %d seconds", MAX_SHUTDOWN_SECS)
+)
+
 // A bulk indexer creates goroutines, and channels for connecting and sending data
 // to elasticsearch in bulk, using buffers.
 type BulkIndexer struct {
@@ -178,15 +194,14 @@ func (b *BulkIndexer) Flush() {
 		b.send(b.buf)
 	}
 	b.mu.Unlock()
-	for {
-		select {
-		case <-wgChan(b.sendWg):
-			// done
-			return
-		case <-time.After(time.Second * time.Duration(MAX_SHUTDOWN_SECS)):
-			// timeout!
-			return
-		}
+	select {
+	case <-wgChan(b.sendWg):
+		// done
+		return
+	case <-time.After(time.Second * time.Duration(MAX_SHUTDOWN_SECS)):
+		// timeout!
+		panic(ErrBulkShutdownTimeout)
+		return
 	}
 }
 
@@ -356,13 +371,7 @@ func (b *BulkIndexer) UpdateWithPartialDoc(index string, _type string, id, ttl s
 // This does the actual send of a buffer, which has already been formatted
 // into bytes of ES formatted bulk data
 func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
-	type responseStruct struct {
-		Took   int64                    `json:"took"`
-		Errors bool                     `json:"errors"`
-		Items  []map[string]interface{} `json:"items"`
-	}
-
-	response := responseStruct{}
+	response := BulkResponseStruct{}
 
 	body, err := b.conn.DoCommand("POST", "/_bulk", nil, buf)
 
@@ -375,7 +384,7 @@ func (b *BulkIndexer) Send(buf *bytes.Buffer) error {
 	if jsonErr == nil {
 		if response.Errors {
 			b.numErrors += uint64(len(response.Items))
-			return fmt.Errorf("Bulk Insertion Error. Failed item count [%d]", len(response.Items))
+			return BulkIndexError(response)
 		}
 	}
 	return nil
