@@ -77,12 +77,11 @@ func (r *Request) Do(v interface{}) (int, []byte, error) {
 }
 
 func (r *Request) DoResponse(v interface{}) (*http.Response, []byte, error) {
-	var client = r.Client
+	var client = r.client
 	if client == nil {
 		client = http.DefaultClient
 	}
 
-	fmt.Println(client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify)
 	res, err := client.Do(r.Request)
 	// Inform the HostPool of what happened to the request and allow it to update
 	r.hostResponse.Mark(err)
