@@ -13,7 +13,7 @@ type AggregateDsl struct {
 	Name          string
 	TypeName      string
 	Type          interface{}
-	Filters       *FilterWrap              `json:"filters,omitempty"`
+	filters       *FilterWrap              `json:"filters,omitempty"`
 	AggregatesVal map[string]*AggregateDsl `json:"aggregations,omitempty"`
 }
 
@@ -129,17 +129,17 @@ func (d *AggregateDsl) Global() *AggregateDsl {
 	return d
 }
 
-func (d *AggregateDsl) Filter(filters ...interface{}) *AggregateDsl {
+func (d *AggregateDsl) Filters(filters ...interface{}) *AggregateDsl {
 
 	if len(filters) == 0 {
 		return d
 	}
 
-	if d.Filters == nil {
-		d.Filters = NewFilterWrap()
+	if d.filters == nil {
+		d.filters = NewFilterWrap()
 	}
 
-	d.Filters.addFilters(filters)
+	d.filters.addFilters(filters)
 	return d
 }
 
@@ -345,8 +345,10 @@ func (d *AggregateDsl) ToMap() map[string]interface{} {
 	}
 	aggregates := d.AggregatesMap()
 
-	if d.Filters != nil {
-		root["filter"] = d.Filters
+	if d.filters != nil {
+		root["filters"] = map[string]interface{}{
+			"filters": d.filters,
+		}
 	}
 
 	if len(aggregates) > 0 {
