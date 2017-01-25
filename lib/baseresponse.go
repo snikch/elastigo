@@ -92,9 +92,9 @@ type Status struct {
 }
 
 type Failure struct {
-	Index  string    `json:"index"`
-	Shard  StatusInt `json:"shard"`
-	Reason string    `json:"reason"`
+	Index  string          `json:"index"`
+	Shard  StatusInt       `json:"shard"`
+	Reason json.RawMessage `json:"reason"`
 }
 
 func (f Failure) String() string {
