@@ -133,17 +133,13 @@ func (c *Conn) SearchUri(index, _type string, args map[string]interface{}) (Sear
 	return retval, err
 }
 
-func (c *Conn) Scroll(args map[string]interface{}, scroll_id string) (SearchResult, error) {
+func (c *Conn) Scroll(args map[string]interface{}, scrollTimeout, scrollId string) (SearchResult, error) {
 	var url string
 	var retval SearchResult
 
-	if _, ok := args["scroll"]; !ok {
-		return retval, fmt.Errorf("Cannot call scroll without 'scroll' in arguments")
-	}
-
 	url = "/_search/scroll"
 
-	body, err := c.DoCommand("POST", url, args, scroll_id)
+	body, err := c.DoCommand("POST", url, args, map[string]string{"scroll_id": scrollId, "scroll": scrollTimeout})
 	if err != nil {
 		return retval, err
 	}
