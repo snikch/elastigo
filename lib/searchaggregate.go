@@ -17,8 +17,15 @@ type AggregateDsl struct {
 	AggregatesVal map[string]*AggregateDsl `json:"aggregations,omitempty"`
 }
 
+// ScriptAggregate represents a scriptable source in an aggregate.
+type ScriptAggregate struct {
+	Lang   string `json:"lang,omitempty"`
+	Source string `json:"source,omitempty"`
+}
+
 type FieldAggregate struct {
-	Field    string            `json:"field"`
+	Field    string            `json:"field,omitempty"`
+	Script   *ScriptAggregate  `json:"script,omitempty"`
 	SizeVal  *int              `json:"size,omitempty"`
 	OrderVal map[string]string `json:"order,omitempty"`
 }
@@ -151,6 +158,12 @@ func (d *AggregateDsl) Missing(field string) *AggregateDsl {
 
 func (d *AggregateDsl) Terms(field string) *AggregateDsl {
 	d.Type = FieldAggregate{Field: field}
+	d.TypeName = "terms"
+	return d
+}
+
+func (d *AggregateDsl) TermsWithScript(script ScriptAggregate) *AggregateDsl {
+	d.Type = FieldAggregate{Script: &script}
 	d.TypeName = "terms"
 	return d
 }
