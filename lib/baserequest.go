@@ -54,8 +54,9 @@ func (c *Conn) DoCommand(method string, url string, args map[string]interface{},
 	if err != nil {
 		return body, err
 	}
-	if httpStatusCode > 304 {
-
+	if httpStatusCode >= 500 {
+		return body, fmt.Errorf("received invalid response code from elasticsearch: %d", httpStatusCode)
+	} else if httpStatusCode > 304 {
 		jsonErr := json.Unmarshal(body, &response)
 		if jsonErr == nil {
 			if res_err, ok := response["error"]; ok {

@@ -100,7 +100,9 @@ func (r *Request) DoResponse(v interface{}) (*http.Response, []byte, error) {
 		return nil, bodyBytes, RecordNotFound
 	}
 
-	if res.StatusCode > 304 && v != nil {
+	if res.StatusCode >= 500 {
+		return nil, nil, fmt.Errorf("received invalid response code from elasticsearch: %d", res.StatusCode)
+	} else if res.StatusCode > 304 && v != nil {
 		jsonErr := json.Unmarshal(bodyBytes, v)
 		if jsonErr != nil {
 			return nil, nil, jsonErr
