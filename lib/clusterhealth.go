@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // The cluster health API allows to get a very simple status on the health of the cluster.
@@ -43,7 +44,7 @@ func (c *Conn) Health(indices ...string) (ClusterHealthResponse, error) {
 	return retval, err
 }
 
-func (c *Conn) WaitForStatus(status string, timeout int, indices ...string) (ClusterHealthResponse, error) {
+func (c *Conn) WaitForStatus(status string, timeout time.Duration, indices ...string) (ClusterHealthResponse, error) {
 	var url string
 	var retval ClusterHealthResponse
 	if len(indices) > 0 {
@@ -54,7 +55,7 @@ func (c *Conn) WaitForStatus(status string, timeout int, indices ...string) (Clu
 
 	body, err := c.DoCommand("GET", url, map[string]interface{}{
 		"wait_for_status": status,
-		"timout":          timeout,
+		"timeout":         timeout.String(),
 	}, nil)
 
 	if err != nil {
